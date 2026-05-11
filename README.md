@@ -14,7 +14,7 @@ An ASP.NET Core MVC web application for managing job postings.
 
 ## Tech Stack
 
-- ASP.NET Core MVC (.NET 8)
+- ASP.NET Core MVC (.NET 9)
 - Entity Framework Core
 - SQL Server / LocalDB
 - ASP.NET Core Identity
@@ -31,3 +31,15 @@ dotnet run --project DevSpot
 ```
 
 Port is assigned automatically — check the console output after `dotnet run` for the exact URL.
+
+## Demo accounts
+
+After seeding the database you can use ready-made accounts:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@devsopt.com | Admin123! |
+| JobSeeker  | jobseeker@devsopt.com  | JobSeeker123!  |
+| Employer  | employer@devsopt.com  | Employer123!  |
+
+These accounts are intended for local development and demo purposes only.
