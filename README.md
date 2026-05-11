@@ -1,1 +1,2 @@
 # DevSpot
+DevSpot – an ASP.NET Core MVC web application for managing job postings. It includes full CRUD for job offers, filtering, a repository pattern with Entity Framework Core, database migrations and basic automated tests. The project demonstrates my understanding of MVC, layered architecture and working with relational databases.
