@@ -21,30 +21,50 @@ namespace DevSpot.Controllers
 		}
 
 		[AllowAnonymous]
-		public async Task<IActionResult> Index()
+		public async Task<IActionResult> Index(int page = 1)
 		{
+			const int pageSize = 2;
+
 			var jobPostings = await _repository.GetAllAsync();
 
-			if (User.IsInRole(Roles.EMPLOYER)) 
+			if (User.IsInRole(Roles.EMPLOYER))
 			{
 				var userId = _userManager.GetUserId(User);
 				jobPostings = jobPostings.Where(jp => jp.UserId == userId);
 			}
 
-			return View(jobPostings);
+			var totalCount = jobPostings.Count();
+			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+			EnsureValidPageParameters(ref page, ref totalPages);
+
+			var items = jobPostings
+				.OrderByDescending(jp => jp.PostedDate)
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.ToList();
+
+			var vm = new JobPostingsListViewModel
+			{
+				Items = items,
+				TotalPages = totalPages,
+				CurrentPage = page
+			};
+
+			return View(vm);
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
-		public IActionResult Create() 
+		public IActionResult Create()
 		{
 			return View();
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		[HttpPost]
-		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm) 
+		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm)
 		{
-			if(ModelState.IsValid) 
+			if (ModelState.IsValid)
 			{
 				var jobPosting = new JobPosting
 				{
@@ -65,11 +85,11 @@ namespace DevSpot.Controllers
 
 		[HttpDelete]
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
-		public async Task<IActionResult> Delete(int id) 
+		public async Task<IActionResult> Delete(int id)
 		{
 			var jobPosting = await _repository.GetByIdAsync(id);
 
-			if(jobPosting == null) 
+			if (jobPosting == null)
 			{
 				return NotFound();
 			}
@@ -84,6 +104,13 @@ namespace DevSpot.Controllers
 			await _repository.DeleteAsync(id);
 
 			return Ok();
+		}
+
+		private void EnsureValidPageParameters(ref int page, ref int totalPages)
+		{
+			if (page < 1) page = 1;
+			if (totalPages == 0) totalPages = 1;
+			if (page > totalPages) page = totalPages;
 		}
 	}
 }
