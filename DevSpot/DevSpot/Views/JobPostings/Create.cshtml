@@ -7,31 +7,32 @@
 		<label asp-for="Title" class="form-label"></label>
 		<input type="text" asp-for="Title" class="form-control" />
 		<span asp-validation-for="Title" class="text-danger"></span>
-
+	</div>
+	<div class="mb-3">
+		<label asp-for="WorkType" class="form-label">Work Type</label>
+		<select asp-for="WorkType" class="form-select" asp-items="Html.GetEnumSelectList<WorkType>()"></select>
+		<span asp-validation-for="WorkType" class="text-danger"></span>
 	</div>
 	<div class="mb-3">
 		<label asp-for="Description" class="form-label"></label>
 		<textarea type="text" asp-for="Description" class="form-control"></textarea>
 		<span asp-validation-for="Description" class="text-danger"></span>
-
 	</div>
 	<div class="mb-3">
 		<label asp-for="Company" class="form-label"></label>
 		<input type="text" asp-for="Company" class="form-control" />
 		<span asp-validation-for="Company" class="text-danger"></span>
-
 	</div>
 	<div class="mb-3">
 		<label asp-for="Location" class="form-label"></label>
 		<input type="text" asp-for="Location" class="form-control" />
 		<span asp-validation-for="Location" class="text-danger"></span>
-
 	</div>
 	<button type="submit" class="btn btn-primary">Create</button>
 </form>
 
 @section Scripts {
-	 @{
+	@{
 		await Html.RenderPartialAsync("_ValidationScriptsPartial");
 	}
 }

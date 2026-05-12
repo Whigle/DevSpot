@@ -11,27 +11,36 @@ namespace DevSpot.Controllers
 	[Authorize]
 	public class JobPostingsController : Controller
 	{
-		private readonly IRepository<JobPosting> _repository;
+		private readonly IJobPostingRepository _repository;
 		private readonly UserManager<IdentityUser> _userManager;
 
-		public JobPostingsController(IRepository<JobPosting> repository, UserManager<IdentityUser> userManager)
+		public JobPostingsController(IJobPostingRepository repository, UserManager<IdentityUser> userManager)
 		{
 			_repository = repository;
 			_userManager = userManager;
 		}
 
 		[AllowAnonymous]
-		public async Task<IActionResult> Index(int page = 1)
+		public async Task<IActionResult> Index(
+			int page = 1, 
+			string? searchTitle = null, 
+			string? location = null, 
+			WorkType? workType = null, 
+			string sortBy = "date_desc")
 		{
 			const int pageSize = 2;
 
-			var jobPostings = await _repository.GetAllAsync();
-
-			if (User.IsInRole(Roles.EMPLOYER))
+			var filters = new JobPostingFilterOptions()
 			{
-				var userId = _userManager.GetUserId(User);
-				jobPostings = jobPostings.Where(jp => jp.UserId == userId);
-			}
+				SearchTitle = searchTitle,
+				Location = location,
+				WorkType = workType,
+				SortBy = sortBy
+			};
+
+			string? userId = User.IsInRole(Roles.EMPLOYER) ? _userManager.GetUserId(User) : null;
+
+			var jobPostings = await _repository.GetFilteredAsync(filters, userId);
 
 			var totalCount = jobPostings.Count();
 			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -39,7 +48,6 @@ namespace DevSpot.Controllers
 			EnsureValidPageParameters(ref page, ref totalPages);
 
 			var items = jobPostings
-				.OrderByDescending(jp => jp.PostedDate)
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
 				.ToList();
@@ -48,7 +56,8 @@ namespace DevSpot.Controllers
 			{
 				Items = items,
 				TotalPages = totalPages,
-				CurrentPage = page
+				CurrentPage = page,
+				Filters = filters,
 			};
 
 			return View(vm);
@@ -73,6 +82,7 @@ namespace DevSpot.Controllers
 					Company = jobPostingVm.Company,
 					Location = jobPostingVm.Location,
 					UserId = _userManager.GetUserId(User),
+					WorkType = jobPostingVm.WorkType,
 				};
 
 				await _repository.AddAsync(jobPosting);

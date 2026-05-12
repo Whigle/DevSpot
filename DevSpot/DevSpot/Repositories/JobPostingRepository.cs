@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Repositories
 {
-	public class JobPostingRepository : IRepository<JobPosting>
+	public class JobPostingRepository : IJobPostingRepository
 	{
 		private readonly ApplicationDbContext _context;
 
@@ -47,6 +47,36 @@ namespace DevSpot.Repositories
 			}
 
 			return jobPosting;
+		}
+
+		public async Task<IEnumerable<JobPosting>> GetFilteredAsync(JobPostingFilterOptions filters, string? userId = null)
+		{
+			var query = _context.JobPostings.AsQueryable();
+
+			if(userId != null) {
+				query = query.Where(posting => posting.UserId == userId);
+			}
+
+			if(!string.IsNullOrEmpty(filters.SearchTitle)) {
+				query = query.Where(posting => posting.Title.Contains(filters.SearchTitle));
+			}
+
+			if(filters.WorkType != null) {
+				query = query.Where(posting => posting.WorkType.Equals(filters.WorkType));
+			}
+
+			if(filters.Location != null)
+			{
+				query = query.Where(posting => posting.Location.Contains(filters.Location));
+			}
+
+			query = filters.SortBy switch
+			{
+				"date_asc" => query.OrderBy(posting => posting.PostedDate),
+				_ => query.OrderByDescending(posting => posting.PostedDate)
+			};
+
+			return await query.ToListAsync();
 		}
 
 		public async Task UpdateAsync(JobPosting entity)

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DevSpot.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevSpot.ViewModels
 {
@@ -12,5 +13,7 @@ namespace DevSpot.ViewModels
 		public string Company { get; set; } = string.Empty;
 		[Required]
 		public string Location { get; set; } = string.Empty;
+		[Required]
+		public WorkType WorkType { get; set; } = WorkType.OnSite;
 	}
 }

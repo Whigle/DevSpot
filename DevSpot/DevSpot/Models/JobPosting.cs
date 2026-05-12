@@ -24,5 +24,7 @@ namespace DevSpot.Models
 
 		[ForeignKey(nameof(UserId))]
 		public IdentityUser User { get; set; }
+
+		public WorkType? WorkType { get; set; }
 	}
 }
