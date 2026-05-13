@@ -22,10 +22,10 @@ namespace DevSpot.Controllers
 
 		[AllowAnonymous]
 		public async Task<IActionResult> Index(
-			int page = 1, 
-			string? searchTitle = null, 
-			string? location = null, 
-			WorkType? workType = null, 
+			int page = 1,
+			string? searchTitle = null,
+			string? location = null,
+			WorkType? workType = null,
 			string sortBy = "date_desc")
 		{
 			const int pageSize = 2;
@@ -73,24 +73,25 @@ namespace DevSpot.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm)
 		{
-			if (ModelState.IsValid)
+			if (!ModelState.IsValid)
 			{
-				var jobPosting = new JobPosting
-				{
-					Title = jobPostingVm.Title,
-					Description = jobPostingVm.Description,
-					Company = jobPostingVm.Company,
-					Location = jobPostingVm.Location,
-					UserId = _userManager.GetUserId(User),
-					WorkType = jobPostingVm.WorkType,
-				};
-
-				await _repository.AddAsync(jobPosting);
-
-				return RedirectToAction(nameof(Index));
+				return View(jobPostingVm);
 			}
 
-			return View(jobPostingVm);
+			var jobPosting = new JobPosting
+			{
+				Title = jobPostingVm.Title,
+				Description = jobPostingVm.Description,
+				Company = jobPostingVm.Company,
+				Location = jobPostingVm.Location,
+				UserId = _userManager.GetUserId(User)!, //null forgiving, UserId can not be null as we are in Authorized method
+				WorkType = jobPostingVm.WorkType,
+			};
+
+			await _repository.AddAsync(jobPosting);
+
+			return RedirectToAction(nameof(Index));
+
 		}
 
 		[HttpDelete]
@@ -113,7 +114,9 @@ namespace DevSpot.Controllers
 
 			await _repository.DeleteAsync(id);
 
-			return Ok();
+			var rv = new RouteValueDictionary(Request.Query);
+
+			return RedirectToAction("Index", rv);
 		}
 
 		private void EnsureValidPageParameters(ref int page, ref int totalPages)

@@ -108,7 +108,7 @@
 					url: "@Url.Action("Delete", "JobPostings")/" + id, //.../JobPostings/Delete/<id>
 					type: "delete",
 					success: function(result) {
-						$("#job-posting-" + id).remove();
+						location.reload();
 					},
 					error: function(err) {
 						alert(err)
