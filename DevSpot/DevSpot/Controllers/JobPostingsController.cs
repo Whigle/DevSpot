@@ -70,7 +70,74 @@ namespace DevSpot.Controllers
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
+		public async Task<IActionResult> Edit(int id)
+		{
+			var userId = _userManager.GetUserId(User)!;
+			var jobPosting = await _repository.GetByIdAsync(id);
+
+			if (jobPosting == null)
+			{
+				return NotFound();
+			}
+
+			if (jobPosting.UserId != userId)
+			{
+				return Forbid();
+			}
+
+			var jobPostingEdit = new JobPostingEditViewModel();
+
+			jobPostingEdit.Id = id;
+
+			jobPostingEdit.JobPosting = new JobPostingViewModel()
+			{
+				Title = jobPosting.Title,
+				Company = jobPosting.Company,
+				Description = jobPosting.Description,
+				Location = jobPosting.Location,
+				WorkType = jobPosting.WorkType ?? WorkType.Remote
+			};
+
+			return View(jobPostingEdit);
+		}
+
+		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(JobPostingEditViewModel jobPostingEditVm)
+		{
+			if (!ModelState.IsValid)
+			{
+				return View(jobPostingEditVm);
+			}
+
+			var userId = _userManager.GetUserId(User)!;
+			var jobPosting = await _repository.GetByIdAsync(jobPostingEditVm.Id);
+
+			if (jobPosting == null)
+			{
+				return NotFound();
+			}
+
+			if (jobPosting.UserId != userId)
+			{
+				return Forbid();
+			}
+
+			jobPosting.Title = jobPostingEditVm.JobPosting.Title;
+			jobPosting.Description = jobPostingEditVm.JobPosting.Description;
+			jobPosting.Company = jobPostingEditVm.JobPosting.Company;
+			jobPosting.Location = jobPostingEditVm.JobPosting.Location;
+			jobPosting.WorkType = jobPostingEditVm.JobPosting.WorkType;
+
+			await _repository.UpdateAsync(jobPosting);
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm)
 		{
 			if (!ModelState.IsValid)
@@ -91,11 +158,11 @@ namespace DevSpot.Controllers
 			await _repository.AddAsync(jobPosting);
 
 			return RedirectToAction(nameof(Index));
-
 		}
 
 		[HttpDelete]
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
+		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Delete(int id)
 		{
 			var jobPosting = await _repository.GetByIdAsync(id);
@@ -114,9 +181,7 @@ namespace DevSpot.Controllers
 
 			await _repository.DeleteAsync(id);
 
-			var rv = new RouteValueDictionary(Request.Query);
-
-			return RedirectToAction("Index", rv);
+			return Ok();
 		}
 
 		private void EnsureValidPageParameters(ref int page, ref int totalPages)
