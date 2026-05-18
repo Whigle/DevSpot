@@ -1,4 +1,4 @@
-﻿using DevSpot.Data;
+using DevSpot.Data;
 using DevSpot.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,15 +37,9 @@ namespace DevSpot.Repositories
 			return await _context.JobPostings.ToListAsync();
 		}
 
-		public async Task<JobPosting> GetByIdAsync(int id)
+		public async Task<JobPosting?> GetByIdAsync(int id)
 		{
 			var jobPosting = await _context.JobPostings.FindAsync(id);
-
-			if (jobPosting == null)
-			{
-				throw new KeyNotFoundException();
-			}
-
 			return jobPosting;
 		}
 
@@ -73,6 +67,8 @@ namespace DevSpot.Repositories
 			query = filters.SortBy switch
 			{
 				"date_asc" => query.OrderBy(posting => posting.PostedDate),
+				"salary_asc" => query.OrderBy(posting => posting.Salary ?? 0),
+				"salary_desc" => query.OrderByDescending(posting => posting.Salary ?? 0),
 				_ => query.OrderByDescending(posting => posting.PostedDate)
 			};
 

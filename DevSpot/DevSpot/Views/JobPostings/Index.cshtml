@@ -1,4 +1,4 @@
-﻿@using DevSpot.Constants
+@using DevSpot.Constants
 @using DevSpot.ViewModels
 @model JobPostingsListViewModel
 
@@ -39,6 +39,12 @@
 				<option value="date_asc" selected="@(sortBy == "date_asc" ? "selected" : null)">
 					Oldest first
 				</option>
+				<option value="salary_desc" selected="@(sortBy == "salary_desc" ? "selected" : null)">
+					Highest salary
+				</option>
+				<option value="salary_asc" selected="@(sortBy == "salary_asc" ? "selected" : null)">
+					Lowest salary
+				</option>
 			</select>
 		</div>
 		<div class="col-md-1">
@@ -58,6 +64,10 @@
 			<p><strong>Company:</strong>@jobPosting.Company</p>
 			<p><strong>Location:</strong>@jobPosting.Location</p>
 			<p><strong>Posted Date:</strong>@jobPosting.PostedDate.ToShortDateString()</p>
+			@if (jobPosting.Salary.HasValue)
+			{
+				<p><strong>Salary:</strong>@jobPosting.Salary.Value.ToString("N0") @jobPosting.SalaryCurrency</p>
+			}
 
 			@if (User.IsInRole(Roles.ADMIN) || User.IsInRole(Roles.EMPLOYER))
 			{

@@ -1,4 +1,4 @@
-﻿@model DevSpot.ViewModels.JobPostingViewModel
+@model DevSpot.ViewModels.JobPostingViewModel
 
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 <div class="mb-3">
@@ -25,6 +25,16 @@
 	<label asp-for="Location" class="form-label"></label>
 	<input type="text" asp-for="Location" class="form-control" />
 	<span asp-validation-for="Location" class="text-danger"></span>
+</div>
+<div class="mb-3">
+	<label asp-for="Salary" class="form-label">Salary (optional)</label>
+	<input type="number" asp-for="Salary" class="form-control" step="0.01" />
+	<span asp-validation-for="Salary" class="text-danger"></span>
+</div>
+<div class="mb-3">
+	<label asp-for="SalaryCurrency" class="form-label">Currency</label>
+	<input type="text" asp-for="SalaryCurrency" class="form-control" placeholder="PLN" />
+	<span asp-validation-for="SalaryCurrency" class="text-danger"></span>
 </div>
 
 @section Scripts {

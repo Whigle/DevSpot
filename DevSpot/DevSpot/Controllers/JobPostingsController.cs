@@ -1,10 +1,11 @@
-﻿using DevSpot.Constants;
+using DevSpot.Constants;
 using DevSpot.Models;
 using DevSpot.Repositories;
 using DevSpot.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Controllers
 {
@@ -95,7 +96,9 @@ namespace DevSpot.Controllers
 				Company = jobPosting.Company,
 				Description = jobPosting.Description,
 				Location = jobPosting.Location,
-				WorkType = jobPosting.WorkType ?? WorkType.Remote
+				WorkType = jobPosting.WorkType ?? WorkType.Remote,
+				Salary = jobPosting.Salary,
+				SalaryCurrency = jobPosting.SalaryCurrency
 			};
 
 			return View(jobPostingEdit);
@@ -119,20 +122,30 @@ namespace DevSpot.Controllers
 				return NotFound();
 			}
 
-			if (jobPosting.UserId != userId)
+			if (!User.IsInRole(Roles.ADMIN) && jobPosting.UserId != userId)
 			{
 				return Forbid();
 			}
 
-			jobPosting.Title = jobPostingEditVm.JobPosting.Title;
-			jobPosting.Description = jobPostingEditVm.JobPosting.Description;
-			jobPosting.Company = jobPostingEditVm.JobPosting.Company;
-			jobPosting.Location = jobPostingEditVm.JobPosting.Location;
-			jobPosting.WorkType = jobPostingEditVm.JobPosting.WorkType;
+			try
+			{
+				jobPosting.Title = jobPostingEditVm.JobPosting.Title;
+				jobPosting.Description = jobPostingEditVm.JobPosting.Description;
+				jobPosting.Company = jobPostingEditVm.JobPosting.Company;
+				jobPosting.Location = jobPostingEditVm.JobPosting.Location;
+				jobPosting.WorkType = jobPostingEditVm.JobPosting.WorkType;
+				jobPosting.Salary = jobPostingEditVm.JobPosting.Salary;
+				jobPosting.SalaryCurrency = jobPostingEditVm.JobPosting.SalaryCurrency;
 
-			await _repository.UpdateAsync(jobPosting);
+				await _repository.UpdateAsync(jobPosting);
 
-			return RedirectToAction(nameof(Index));
+				return RedirectToAction(nameof(Index));
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				ModelState.AddModelError(string.Empty, "Record has been modified by another user.");
+				return View(jobPostingEditVm);
+			}
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
@@ -153,6 +166,8 @@ namespace DevSpot.Controllers
 				Location = jobPostingVm.Location,
 				UserId = _userManager.GetUserId(User)!, //null forgiving, UserId can not be null as we are in Authorized method
 				WorkType = jobPostingVm.WorkType,
+				Salary = jobPostingVm.Salary,
+				SalaryCurrency = jobPostingVm.SalaryCurrency
 			};
 
 			await _repository.AddAsync(jobPosting);

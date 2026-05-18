@@ -1,4 +1,4 @@
-﻿using DevSpot.Models;
+using DevSpot.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace DevSpot.ViewModels
@@ -19,5 +19,11 @@ namespace DevSpot.ViewModels
 		public string Location { get; set; } = string.Empty;
 		[Required]
 		public WorkType WorkType { get; set; } = WorkType.OnSite;
+
+		[Range(0, double.MaxValue, ErrorMessage = "Salary must be a positive value")]
+		public decimal? Salary { get; set; }
+
+		[StringLength(10, ErrorMessage = "Currency code can't be longer than 10 characters")]
+		public string? SalaryCurrency { get; set; } = "PLN";
 	}
 }
