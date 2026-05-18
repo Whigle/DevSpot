@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# JetBrains Rider / IntelliJ configuration
+.idea/
+*.iws
+*.iml
+*.ipr
+
 # User-specific files
 *.rsuser
 *.suo
