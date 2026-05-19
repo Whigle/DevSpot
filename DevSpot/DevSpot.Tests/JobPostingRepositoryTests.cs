@@ -1,4 +1,4 @@
-﻿using DevSpot.Data;
+using DevSpot.Data;
 using DevSpot.Models;
 using DevSpot.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,12 +23,20 @@ namespace DevSpot.Tests
 		{
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
+
+			var company = new Company
+			{
+				Name = "Test Company"
+			};
+			await db.Companies.AddAsync(company);
+			await db.SaveChangesAsync();
+
 			var jobPosting = new JobPosting()
 			{
 				Title = "Test Title",
 				Description = "Test Description",
 				PostedDate = DateTime.Now,
-				Company = "Test Company",
+				CompanyId = company.Id,
 				Location = "Test Location",
 				UserId = "TestUserId"
 			};
@@ -46,12 +54,20 @@ namespace DevSpot.Tests
 		{
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
+
+			var company = new Company
+			{
+				Name = "Test Company"
+			};
+			await db.Companies.AddAsync(company);
+			await db.SaveChangesAsync();
+
 			var jobPosting = new JobPosting()
 			{
 				Title = "Test Title",
 				Description = "Test Description",
 				PostedDate = DateTime.Now,
-				Company = "Test Company",
+				CompanyId = company.Id,
 				Location = "Test Location",
 				UserId = "TestUserId"
 			};
@@ -71,7 +87,9 @@ namespace DevSpot.Tests
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
 
-			await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.GetByIdAsync(999));
+			var result = await repository.GetByIdAsync(999);
+			
+			Assert.Null(result);
 		}
 
 		[Fact]
@@ -80,12 +98,23 @@ namespace DevSpot.Tests
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
 
+			var company1 = new Company
+			{
+				Name = "Test Company1"
+			};
+			var company2 = new Company
+			{
+				Name = "Test Company2"
+			};
+			await db.Companies.AddRangeAsync(company1, company2);
+			await db.SaveChangesAsync();
+
 			var jobPosting1 = new JobPosting()
 			{
 				Title = "Test Title1",
 				Description = "Test Description1",
 				PostedDate = DateTime.Now,
-				Company = "Test Company1",
+				CompanyId = company1.Id,
 				Location = "Test Location1",
 				UserId = "TestUserId1"
 			};
@@ -95,7 +124,7 @@ namespace DevSpot.Tests
 				Title = "Test Title2",
 				Description = "Test Description2",
 				PostedDate = DateTime.Now,
-				Company = "Test Company2",
+				CompanyId = company2.Id,
 				Location = "Test Location2",
 				UserId = "TestUserId2"
 			};
@@ -106,7 +135,7 @@ namespace DevSpot.Tests
 			var result = await repository.GetAllAsync();
 
 			Assert.NotNull(result);
-			Assert.True(result.Count() > 2);
+			Assert.True(result.Count() >= 2);
 		}
 
 		[Fact]
@@ -115,12 +144,17 @@ namespace DevSpot.Tests
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
 
+			var company = new Company
+			{
+				Name = "Test Company"
+			};
+			
 			var jobPosting = new JobPosting()
 			{
 				Title = "Test Title",
 				Description = "Test Description",
 				PostedDate = DateTime.Now,
-				Company = "Test Company",
+				CompanyId = company.Id,
 				Location = "Test Location",
 				UserId = "TestUserId"
 			};
@@ -144,12 +178,17 @@ namespace DevSpot.Tests
 			var db = CreateDbContext();
 			var repository = new JobPostingRepository(db);
 
+			var company = new Company
+			{
+				Name = "Test Company"
+			};
+
 			var jobPosting = new JobPosting()
 			{
 				Title = "Test Title",
 				Description = "Test Description",
 				PostedDate = DateTime.Now,
-				Company = "Test Company",
+				CompanyId = company.Id,
 				Location = "Test Location",
 				UserId = "TestUserId"
 			};

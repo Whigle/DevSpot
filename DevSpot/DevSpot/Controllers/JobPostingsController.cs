@@ -1,4 +1,5 @@
 using DevSpot.Constants;
+using DevSpot.Data;
 using DevSpot.Models;
 using DevSpot.Repositories;
 using DevSpot.ViewModels;
@@ -14,11 +15,13 @@ namespace DevSpot.Controllers
 	{
 		private readonly IJobPostingRepository _repository;
 		private readonly UserManager<IdentityUser> _userManager;
+		private readonly ApplicationDbContext _context;
 
-		public JobPostingsController(IJobPostingRepository repository, UserManager<IdentityUser> userManager)
+		public JobPostingsController(IJobPostingRepository repository, UserManager<IdentityUser> userManager, ApplicationDbContext context)
 		{
 			_repository = repository;
 			_userManager = userManager;
+			_context = context;
 		}
 
 		[AllowAnonymous]
@@ -67,12 +70,28 @@ namespace DevSpot.Controllers
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		public IActionResult Create()
 		{
+			ViewBag.Companies = _context.Companies
+				.Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+				{
+					Value = c.Id.ToString(),
+					Text = c.Name
+				})
+				.ToList();
+
 			return View();
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		public async Task<IActionResult> Edit(int id)
 		{
+			ViewBag.Companies = _context.Companies
+				.Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+				{
+					Value = c.Id.ToString(),
+					Text = c.Name
+				})
+				.ToList();
+
 			var userId = _userManager.GetUserId(User)!;
 			var jobPosting = await _repository.GetByIdAsync(id);
 
@@ -93,7 +112,7 @@ namespace DevSpot.Controllers
 			jobPostingEdit.JobPosting = new JobPostingViewModel()
 			{
 				Title = jobPosting.Title,
-				Company = jobPosting.Company,
+				CompanyId = jobPosting.CompanyId,
 				Description = jobPosting.Description,
 				Location = jobPosting.Location,
 				WorkType = jobPosting.WorkType ?? WorkType.Remote,
@@ -131,7 +150,7 @@ namespace DevSpot.Controllers
 			{
 				jobPosting.Title = jobPostingEditVm.JobPosting.Title;
 				jobPosting.Description = jobPostingEditVm.JobPosting.Description;
-				jobPosting.Company = jobPostingEditVm.JobPosting.Company;
+				jobPosting.CompanyId = jobPostingEditVm.JobPosting.CompanyId;
 				jobPosting.Location = jobPostingEditVm.JobPosting.Location;
 				jobPosting.WorkType = jobPostingEditVm.JobPosting.WorkType;
 				jobPosting.Salary = jobPostingEditVm.JobPosting.Salary;
@@ -162,7 +181,7 @@ namespace DevSpot.Controllers
 			{
 				Title = jobPostingVm.Title,
 				Description = jobPostingVm.Description,
-				Company = jobPostingVm.Company,
+				CompanyId = jobPostingVm.CompanyId,
 				Location = jobPostingVm.Location,
 				UserId = _userManager.GetUserId(User)!, //null forgiving, UserId can not be null as we are in Authorized method
 				WorkType = jobPostingVm.WorkType,

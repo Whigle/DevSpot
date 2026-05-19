@@ -12,8 +12,7 @@ namespace DevSpot.ViewModels
 		[StringLength(2000, ErrorMessage = "Description can't be longer than 2000 characters")]
 		public string Description { get; set; } = string.Empty;
 		[Required]
-		[StringLength(100, ErrorMessage = "Company name can't be longer than 100 characters")]
-		public string Company { get; set; } = string.Empty;
+		public int CompanyId { get; set; }
 		[Required]
 		[StringLength(100, ErrorMessage = "Location can't be longer than 100 characters")]
 		public string Location { get; set; } = string.Empty;

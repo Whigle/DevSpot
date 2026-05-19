@@ -17,8 +17,10 @@ namespace DevSpot.Models
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100, ErrorMessage = "Company name can't be longer than 100 characters")]
-        public string Company { get; set; } = string.Empty;
+        public int CompanyId { get; set; }
+
+        [ForeignKey(nameof(CompanyId))]
+        public Company Company { get; set; } = null!;
 
         [Required]
         [StringLength(100, ErrorMessage = "Location can't be longer than 100 characters")]
