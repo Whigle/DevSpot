@@ -2,8 +2,10 @@ using DevSpot.Constants;
 using DevSpot.Data;
 using DevSpot.Models;
 using DevSpot.Repositories;
+using DevSpot.Services;
 using DevSpot.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,14 +16,19 @@ namespace DevSpot.Controllers
 	public class JobPostingsController : Controller
 	{
 		private readonly IJobPostingRepository _repository;
-		private readonly UserManager<IdentityUser> _userManager;
-		private readonly ApplicationDbContext _context;
+		private readonly IRepository<Company> _companiesRepository;
+		private readonly UserManager<ApplicationUser> _userManager;
+		private readonly IUserService _userService;
 
-		public JobPostingsController(IJobPostingRepository repository, UserManager<IdentityUser> userManager, ApplicationDbContext context)
+		public JobPostingsController(IJobPostingRepository repository, 
+			UserManager<ApplicationUser> userManager, 
+			IRepository<Company> companiesRepository,
+			IUserService userService)
 		{
 			_repository = repository;
 			_userManager = userManager;
-			_context = context;
+			_companiesRepository = companiesRepository;
+			_userService = userService;
 		}
 
 		[AllowAnonymous]
@@ -68,30 +75,26 @@ namespace DevSpot.Controllers
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
-		public IActionResult Create()
+		public async Task<IActionResult> Create()
 		{
-			ViewBag.Companies = _context.Companies
-				.Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-				{
-					Value = c.Id.ToString(),
-					Text = c.Name
-				})
-				.ToList();
+			var userId = _userManager.GetUserId(User)!;
 
+			var currentUser = await _userService.GetUserWithCompanyAsync(userId);
+
+			if (currentUser!.Company == null)
+			{
+				var targetUrl = Url.Action("Create", "JobPostings");
+				return RedirectToAction(nameof(CompaniesController.Create), 
+					"Companies", 
+					new { returnUrl = targetUrl });
+			}
+			
 			return View();
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		public async Task<IActionResult> Edit(int id)
 		{
-			ViewBag.Companies = _context.Companies
-				.Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-				{
-					Value = c.Id.ToString(),
-					Text = c.Name
-				})
-				.ToList();
-
 			var userId = _userManager.GetUserId(User)!;
 			var jobPosting = await _repository.GetByIdAsync(id);
 
@@ -176,14 +179,26 @@ namespace DevSpot.Controllers
 			{
 				return View(jobPostingVm);
 			}
+			
+			var userId = _userManager.GetUserId(User)!;	//null forgiving, UserId can not be null as we are in Authorized method
+			
+			var currentUser = await _userService.GetUserWithCompanyAsync(userId);
 
+			if (currentUser!.Company == null)
+			{
+				return RedirectToAction(
+					nameof(CompaniesController.Create), 
+					"Companies", 
+					new { returnUrl = "/JobPostings/Create" });
+			}
+			
 			var jobPosting = new JobPosting
 			{
 				Title = jobPostingVm.Title,
 				Description = jobPostingVm.Description,
-				CompanyId = jobPostingVm.CompanyId,
+				CompanyId = currentUser.Company.Id,
 				Location = jobPostingVm.Location,
-				UserId = _userManager.GetUserId(User)!, //null forgiving, UserId can not be null as we are in Authorized method
+				UserId = userId!, 
 				WorkType = jobPostingVm.WorkType,
 				Salary = jobPostingVm.Salary,
 				SalaryCurrency = jobPostingVm.SalaryCurrency

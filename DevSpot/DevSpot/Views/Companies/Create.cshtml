@@ -1,0 +1,30 @@
+﻿@model DevSpot.ViewModels.CompanyViewModel
+
+<h2>Create Company profile</h2>
+
+<form asp-action="Create" asp-route-returnUrl="@ViewBag.ReturnUrl" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Name"></label>
+        <input type="text" asp-for="Name" class="form-control"/>
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description"></label>
+        <textarea type="text" asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="WebsiteUrl"></label>
+        <input type="text" asp-for="WebsiteUrl" class="form-control"/>
+        <span asp-validation-for="WebsiteUrl" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create profile</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

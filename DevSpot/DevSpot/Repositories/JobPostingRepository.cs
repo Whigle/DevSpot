@@ -72,7 +72,7 @@ namespace DevSpot.Repositories
 				_ => query.OrderByDescending(posting => posting.PostedDate)
 			};
 
-			return await query.ToListAsync();
+			return await query.Include(j => j.Company).ToListAsync();
 		}
 
 		public async Task UpdateAsync(JobPosting entity)

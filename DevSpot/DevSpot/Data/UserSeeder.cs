@@ -7,18 +7,18 @@ namespace DevSpot.Data
 	{
 		public static async Task SeedUsersAsync(IServiceProvider serviceProvider)
 		{
-			var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+			var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
 			await CreateUserWithRole(userManager, "admin@devsopt.com", "Admin123!", Roles.ADMIN);
 			await CreateUserWithRole(userManager, "jobseeker@devsopt.com", "JobSeeker123!", Roles.JOB_SEEKER);
 			await CreateUserWithRole(userManager, "employer@devsopt.com", "Employer123!", Roles.EMPLOYER);
 		}
 
-		private static async Task CreateUserWithRole(UserManager<IdentityUser> userManager, string email, string password, string role)
+		private static async Task CreateUserWithRole(UserManager<ApplicationUser> userManager, string email, string password, string role)
 		{
 			if (await userManager.FindByEmailAsync(email) == null)
 			{
-				var user = new IdentityUser
+				var user = new ApplicationUser
 				{
 					Email = email,
 					EmailConfirmed = true,

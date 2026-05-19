@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Data
 {
-	public class ApplicationDbContext : IdentityDbContext
+	public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	{
 		public DbSet<JobPosting> JobPostings { get; set; }
 		public DbSet<Company> Companies { get; set; }
@@ -28,6 +28,11 @@ namespace DevSpot.Data
 				.WithOne(j => j.Company)
 				.HasForeignKey(j => j.CompanyId)
 				.OnDelete(DeleteBehavior.Restrict);
+
+			modelBuilder.Entity<Company>()
+				.HasOne(c => c.User)
+				.WithOne(u => u.Company)
+				.HasForeignKey<Company>(c => c.UserId);
 		}
 	}
 }

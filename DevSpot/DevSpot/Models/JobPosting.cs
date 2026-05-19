@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DevSpot.Data;
 using Microsoft.AspNetCore.Identity;
 
 namespace DevSpot.Models
@@ -33,7 +34,7 @@ namespace DevSpot.Models
         public string UserId { get; set; } = string.Empty;
 
         [ForeignKey(nameof(UserId))] 
-        public IdentityUser User { get; set; }
+        public ApplicationUser User { get; set; }
 
         public WorkType? WorkType { get; set; }
 
