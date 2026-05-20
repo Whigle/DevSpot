@@ -43,9 +43,9 @@ namespace DevSpot.Repositories
 			return jobPosting;
 		}
 
-		public async Task<IEnumerable<JobPosting>> GetFilteredAsync(JobPostingFilterOptions filters, string? userId = null)
+		public IQueryable<JobPosting> GetFilteredQuery(JobPostingFilterOptions filters, string? userId = null)
 		{
-			var query = _context.JobPostings.AsQueryable();
+			var query = _context.JobPostings.AsNoTracking().AsQueryable();
 
 			if(userId != null) {
 				query = query.Where(posting => posting.UserId == userId);
@@ -72,7 +72,7 @@ namespace DevSpot.Repositories
 				_ => query.OrderByDescending(posting => posting.PostedDate)
 			};
 
-			return await query.Include(j => j.Company).ToListAsync();
+			return query;
 		}
 
 		public async Task UpdateAsync(JobPosting entity)

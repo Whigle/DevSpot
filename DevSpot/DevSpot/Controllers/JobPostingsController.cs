@@ -51,17 +51,18 @@ namespace DevSpot.Controllers
 
 			string? userId = User.IsInRole(Roles.EMPLOYER) ? _userManager.GetUserId(User) : null;
 
-			var jobPostings = await _repository.GetFilteredAsync(filters, userId);
+			var query = _repository.GetFilteredQuery(filters, userId);
 
-			var totalCount = jobPostings.Count();
+			var totalCount = await query.CountAsync();
 			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
 			EnsureValidPageParameters(ref page, ref totalPages);
 
-			var items = jobPostings
+			var items = await query
+				.Include(j => j.Company)
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
-				.ToList();
+				.ToListAsync();
 
 			var vm = new JobPostingsListViewModel
 			{

@@ -4,6 +4,6 @@ namespace DevSpot.Repositories
 {
 	public interface IJobPostingRepository : IRepository<JobPosting>
 	{
-		Task<IEnumerable<JobPosting>> GetFilteredAsync(JobPostingFilterOptions filters, string? userId = null);
+		public IQueryable<JobPosting> GetFilteredQuery(JobPostingFilterOptions filters, string? userId = null);
 	}
 }
