@@ -39,7 +39,7 @@ namespace DevSpot.Controllers
 			WorkType? workType = null,
 			string sortBy = "date_desc")
 		{
-			const int pageSize = 2;
+			const int pageSize = 10;
 
 			var filters = new JobPostingFilterOptions()
 			{
