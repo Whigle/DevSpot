@@ -49,14 +49,14 @@ namespace DevSpot.Controllers
 				SortBy = sortBy
 			};
 
-			string? userId = User.IsInRole(Roles.EMPLOYER) ? _userManager.GetUserId(User) : null;
+			var userId = User.IsInRole(Roles.EMPLOYER) ? _userManager.GetUserId(User) : null;
 
 			var query = _repository.GetFilteredQuery(filters, userId);
 
 			var totalCount = await query.CountAsync();
 			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-			EnsureValidPageParameters(ref page, ref totalPages);
+			EnsureValidPageParameters();
 
 			var items = await query
 				.Include(j => j.Company)
@@ -73,6 +73,13 @@ namespace DevSpot.Controllers
 			};
 
 			return View(vm);
+			
+			void EnsureValidPageParameters()
+			{
+				if (page < 1) page = 1;
+				if (totalPages == 0) totalPages = 1;
+				if (page > totalPages) page = totalPages;
+			}
 		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
@@ -232,13 +239,6 @@ namespace DevSpot.Controllers
 			await _repository.DeleteAsync(id);
 
 			return Ok();
-		}
-
-		private void EnsureValidPageParameters(ref int page, ref int totalPages)
-		{
-			if (page < 1) page = 1;
-			if (totalPages == 0) totalPages = 1;
-			if (page > totalPages) page = totalPages;
 		}
 	}
 }

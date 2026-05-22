@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using DevSpot.Constants
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -23,9 +25,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="JobPostings" asp-action="Index">All Jobs</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="JobPostings" asp-action="Create">Create Job</a>
-                        </li>
+                        @if (User.IsInRole(Roles.ADMIN) || User.IsInRole(Roles.EMPLOYER))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="JobPostings" asp-action="Create">Create Job</a>
+                            </li>
+                        }
                         @if(User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
