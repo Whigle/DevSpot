@@ -8,6 +8,7 @@ namespace DevSpot.Data
 	{
 		public DbSet<JobPosting> JobPostings { get; set; }
 		public DbSet<Company> Companies { get; set; }
+		public DbSet<JobApplication> JobApplications { get; set; }
 
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
 		{
@@ -33,6 +34,12 @@ namespace DevSpot.Data
 				.HasOne(c => c.User)
 				.WithOne(u => u.Company)
 				.HasForeignKey<Company>(c => c.UserId);
+			
+			modelBuilder.Entity<JobApplication>()
+				.HasOne(a => a.JobPosting)
+				.WithMany()
+				.HasForeignKey(j => j.JobPostingId)
+				.OnDelete(DeleteBehavior.Restrict);
 		}
 	}
 }
