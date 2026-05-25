@@ -1,7 +1,8 @@
 ﻿using DevSpot.Constants;
+using DevSpot.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace DevSpot.Data
+namespace DevSpot.Data.Seeders
 {
 	public class UserSeeder
 	{

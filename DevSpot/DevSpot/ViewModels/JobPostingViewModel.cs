@@ -1,5 +1,6 @@
 using DevSpot.Models;
 using System.ComponentModel.DataAnnotations;
+using DevSpot.Models.Enums;
 
 namespace DevSpot.ViewModels
 {
@@ -24,5 +25,7 @@ namespace DevSpot.ViewModels
 
 		[StringLength(10, ErrorMessage = "Currency code can't be longer than 10 characters")]
 		public string? SalaryCurrency { get; set; } = "PLN";
+		
+		public bool HasApplied { get; set; } = false;
 	}
 }

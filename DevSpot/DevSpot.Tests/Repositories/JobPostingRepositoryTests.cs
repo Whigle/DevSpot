@@ -3,7 +3,7 @@ using DevSpot.Models;
 using DevSpot.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace DevSpot.Tests
+namespace DevSpot.Tests.Repositories
 {
 	public class JobPostingRepositoryTests
 	{

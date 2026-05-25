@@ -1,4 +1,4 @@
-namespace DevSpot.Models
+namespace DevSpot.ViewModels
 {
     public class ErrorViewModel
     {

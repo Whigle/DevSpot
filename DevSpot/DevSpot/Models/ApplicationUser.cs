@@ -1,7 +1,6 @@
-﻿using DevSpot.Models;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
-namespace DevSpot.Data;
+namespace DevSpot.Models;
 
 public class ApplicationUser : IdentityUser
 {

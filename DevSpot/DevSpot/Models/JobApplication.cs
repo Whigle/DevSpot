@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DevSpot.Data;
+using DevSpot.Models.Enums;
 
 namespace DevSpot.Models;
 
@@ -23,6 +24,7 @@ public class JobApplication
     [Required]
     public string CvFilePath { get; set; } = string.Empty;
     
+    [StringLength(1000, ErrorMessage = "CandidateMessage can't be longer than 1000 characters")]
     public string? CandidateMessage { get; set; }
     public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 

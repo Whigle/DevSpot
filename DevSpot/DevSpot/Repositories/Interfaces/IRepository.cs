@@ -1,4 +1,4 @@
-﻿namespace DevSpot.Repositories
+﻿namespace DevSpot.Repositories.Interfaces
 {
 	public interface IRepository<T> where T : class
 	{

@@ -1,4 +1,5 @@
 ﻿using DevSpot.Models;
+using DevSpot.ViewModels.FilterOptions;
 
 namespace DevSpot.ViewModels
 {
@@ -8,5 +9,7 @@ namespace DevSpot.ViewModels
 		public int CurrentPage { get; set; }
 		public int TotalPages { get; set; }
 		public JobPostingFilterOptions Filters { get; set; } = new();
+		
+		public HashSet<int> AppliedJobIds { get; set; } = new();
 	}
 }

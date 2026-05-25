@@ -2,7 +2,9 @@
 using DevSpot.Data;
 using DevSpot.Models;
 using DevSpot.Repositories;
+using DevSpot.Repositories.Interfaces;
 using DevSpot.Services;
+using DevSpot.Services.Interfaces;
 using DevSpot.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -10,21 +12,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DevSpot.Controllers;
 
-public class CompaniesController : Controller
+public class CompaniesController(
+    UserManager<ApplicationUser> userManager,
+    IRepository<Company> companiesRepository,
+    IUserService userService)
+    : Controller
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IRepository<Company> _companiesRepository;
-    private readonly IUserService _userService;
-
-    public CompaniesController(UserManager<ApplicationUser> userManager,
-        IRepository<Company> companiesRepository,
-        IUserService userService)
-    {
-        _userManager = userManager;
-        _companiesRepository = companiesRepository;
-        _userService = userService;
-    }
-
     // GET
     public IActionResult Index()
     {
@@ -49,10 +42,10 @@ public class CompaniesController : Controller
             return View(model);
         }
 
-        var userId = _userManager.GetUserId(User)!;
-        var currentUser = await _userService.GetUserWithCompanyAsync(userId);
+        var userId = userManager.GetUserId(User)!;
+        var currentUser = await userService.GetUserWithCompanyAsync(userId);
 
-        if (currentUser!.Company != null)  // ZMIEN NA !=
+        if (currentUser!.Company != null)
         {
             ModelState.AddModelError("", "You already have a company profile.");
             ViewBag.ReturnUrl = returnUrl;
@@ -67,7 +60,7 @@ public class CompaniesController : Controller
             UserId = userId, //null forgiving, UserId can not be null as we are in Authorized method
         };
 
-        await _companiesRepository.AddAsync(company);
+        await companiesRepository.AddAsync(company);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
         {

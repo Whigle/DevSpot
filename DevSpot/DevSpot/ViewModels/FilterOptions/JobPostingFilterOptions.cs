@@ -1,4 +1,6 @@
-namespace DevSpot.Models
+using DevSpot.Models.Enums;
+
+namespace DevSpot.ViewModels.FilterOptions
 {
 	public class JobPostingFilterOptions
 	{

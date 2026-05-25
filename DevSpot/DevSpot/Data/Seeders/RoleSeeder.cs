@@ -1,7 +1,7 @@
 ﻿using DevSpot.Constants;
 using Microsoft.AspNetCore.Identity;
 
-namespace DevSpot.Data
+namespace DevSpot.Data.Seeders
 {
 	public class RoleSeeder
 	{

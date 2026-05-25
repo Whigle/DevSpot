@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DevSpot.Data;
+using DevSpot.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace DevSpot.Models

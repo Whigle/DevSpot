@@ -1,9 +1,10 @@
 ﻿using Bogus;
 using DevSpot.Models;
+using DevSpot.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace DevSpot.Data
+namespace DevSpot.Data.Seeders
 {
     public static class DataSeeder
     {

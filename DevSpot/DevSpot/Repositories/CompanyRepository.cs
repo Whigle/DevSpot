@@ -1,5 +1,6 @@
 ﻿using DevSpot.Data;
 using DevSpot.Models;
+using DevSpot.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Repositories;

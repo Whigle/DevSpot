@@ -1,11 +1,11 @@
 using DevSpot.Constants;
-using DevSpot.Data;
 using DevSpot.Models;
-using DevSpot.Repositories;
-using DevSpot.Services;
+using DevSpot.Models.Enums;
+using DevSpot.Repositories.Interfaces;
+using DevSpot.Services.Interfaces;
 using DevSpot.ViewModels;
+using DevSpot.ViewModels.FilterOptions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,24 +13,16 @@ using Microsoft.EntityFrameworkCore;
 namespace DevSpot.Controllers
 {
 	[Authorize]
-	public class JobPostingsController : Controller
+	public class JobPostingsController(
+		IJobPostingRepository jobPostingRepository,
+		UserManager<ApplicationUser> userManager,
+		IRepository<Company> companiesRepository,
+		IUserService userService,
+		IFileService fileService,
+		IJobApplicationRepository applicationRepository)
+		: Controller
 	{
-		private readonly IJobPostingRepository _repository;
-		private readonly IRepository<Company> _companiesRepository;
-		private readonly UserManager<ApplicationUser> _userManager;
-		private readonly IUserService _userService;
-
-		public JobPostingsController(IJobPostingRepository repository, 
-			UserManager<ApplicationUser> userManager, 
-			IRepository<Company> companiesRepository,
-			IUserService userService)
-		{
-			_repository = repository;
-			_userManager = userManager;
-			_companiesRepository = companiesRepository;
-			_userService = userService;
-		}
-
+		
 		[AllowAnonymous]
 		public async Task<IActionResult> Index(
 			int page = 1,
@@ -49,9 +41,9 @@ namespace DevSpot.Controllers
 				SortBy = sortBy
 			};
 
-			var userId = User.IsInRole(Roles.EMPLOYER) ? _userManager.GetUserId(User) : null;
+			var userId = userManager.GetUserId(User);
 
-			var query = _repository.GetFilteredQuery(filters, userId);
+			var query = jobPostingRepository.GetFilteredQuery(filters, User.IsInRole(Roles.EMPLOYER) ? userId : null);
 
 			var totalCount = await query.CountAsync();
 			var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -64,12 +56,20 @@ namespace DevSpot.Controllers
 				.Take(pageSize)
 				.ToListAsync();
 
+			var appliedJobIds = new List<int>();
+			
+			if (userId != null && User.IsInRole(Roles.JOB_SEEKER))
+			{
+				appliedJobIds = await applicationRepository.GetAppliedJobIdsAsync(userId);
+			}
+
 			var vm = new JobPostingsListViewModel
 			{
 				Items = items,
 				TotalPages = totalPages,
 				CurrentPage = page,
 				Filters = filters,
+				AppliedJobIds = appliedJobIds.ToHashSet()
 			};
 
 			return View(vm);
@@ -85,9 +85,9 @@ namespace DevSpot.Controllers
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		public async Task<IActionResult> Create()
 		{
-			var userId = _userManager.GetUserId(User)!;
+			var userId = userManager.GetUserId(User)!;
 
-			var currentUser = await _userService.GetUserWithCompanyAsync(userId);
+			var currentUser = await userService.GetUserWithCompanyAsync(userId);
 
 			if (currentUser!.Company == null)
 			{
@@ -99,12 +99,51 @@ namespace DevSpot.Controllers
 			
 			return View();
 		}
+		
+		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm)
+		{
+			if (!ModelState.IsValid)
+			{
+				return View(jobPostingVm);
+			}
+			
+			var userId = userManager.GetUserId(User)!;	//null forgiving, UserId can not be null as we are in Authorized method
+			
+			var currentUser = await userService.GetUserWithCompanyAsync(userId);
+
+			if (currentUser!.Company == null)
+			{
+				return RedirectToAction(
+					nameof(CompaniesController.Create), 
+					"Companies", 
+					new { returnUrl = "/JobPostings/Create" });
+			}
+			
+			var jobPosting = new JobPosting
+			{
+				Title = jobPostingVm.Title,
+				Description = jobPostingVm.Description,
+				CompanyId = currentUser.Company.Id,
+				Location = jobPostingVm.Location,
+				UserId = userId!, 
+				WorkType = jobPostingVm.WorkType,
+				Salary = jobPostingVm.Salary,
+				SalaryCurrency = jobPostingVm.SalaryCurrency
+			};
+
+			await jobPostingRepository.AddAsync(jobPosting);
+
+			return RedirectToAction(nameof(Index));
+		}
 
 		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
 		public async Task<IActionResult> Edit(int id)
 		{
-			var userId = _userManager.GetUserId(User)!;
-			var jobPosting = await _repository.GetByIdAsync(id);
+			var userId = userManager.GetUserId(User)!;
+			var jobPosting = await jobPostingRepository.GetByIdAsync(id);
 
 			if (jobPosting == null)
 			{
@@ -144,8 +183,8 @@ namespace DevSpot.Controllers
 				return View(jobPostingEditVm);
 			}
 
-			var userId = _userManager.GetUserId(User)!;
-			var jobPosting = await _repository.GetByIdAsync(jobPostingEditVm.Id);
+			var userId = userManager.GetUserId(User)!;
+			var jobPosting = await jobPostingRepository.GetByIdAsync(jobPostingEditVm.Id);
 
 			if (jobPosting == null)
 			{
@@ -167,7 +206,7 @@ namespace DevSpot.Controllers
 				jobPosting.Salary = jobPostingEditVm.JobPosting.Salary;
 				jobPosting.SalaryCurrency = jobPostingEditVm.JobPosting.SalaryCurrency;
 
-				await _repository.UpdateAsync(jobPosting);
+				await jobPostingRepository.UpdateAsync(jobPosting);
 
 				return RedirectToAction(nameof(Index));
 			}
@@ -178,43 +217,78 @@ namespace DevSpot.Controllers
 			}
 		}
 
-		[Authorize(Roles = $"{Roles.ADMIN}, {Roles.EMPLOYER}")]
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create(JobPostingViewModel jobPostingVm)
+		[Authorize(Roles = $"{Roles.JOB_SEEKER}")]
+		public async Task<IActionResult> Apply(int id)
 		{
+			var jobPosting = await jobPostingRepository.GetByIdWithCompanyAsync(id);
+
+			if (jobPosting == null)
+			{
+				return NotFound();
+			}
+			
+			var userId = userManager.GetUserId(User);
+
+
+			var alreadyApplied = await applicationRepository.IsAppliedAsync(id, userId!);
+			
+			if(alreadyApplied)
+			{
+				TempData["ErrorMessage"] = "User already applied for this offer.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			var vm = new JobApplicationCreateViewModel()
+			{
+				JobPostingId = jobPosting.Id,
+				JobTitle = jobPosting.Title,
+				CompanyName = jobPosting.Company?.Name ?? "Not defined"
+			};
+			
+			return View(vm);
+		}
+
+		[HttpPost]
+		[Authorize(Roles = $"{Roles.JOB_SEEKER}")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Apply(JobApplicationCreateViewModel vm)
+		{
+			var jobPosting = await jobPostingRepository.GetByIdAsync(vm.JobPostingId);
+
+			if (jobPosting == null)
+			{
+				return NotFound();
+			}
+
 			if (!ModelState.IsValid)
 			{
-				return View(jobPostingVm);
+				return View(vm);
 			}
-			
-			var userId = _userManager.GetUserId(User)!;	//null forgiving, UserId can not be null as we are in Authorized method
-			
-			var currentUser = await _userService.GetUserWithCompanyAsync(userId);
 
-			if (currentUser!.Company == null)
+			try
 			{
-				return RedirectToAction(
-					nameof(CompaniesController.Create), 
-					"Companies", 
-					new { returnUrl = "/JobPostings/Create" });
+				var savedFilePath = await fileService.UploadCvAsync(vm.CvFile);
+
+				var application = new JobApplication()
+				{
+					JobPostingId = vm.JobPostingId,
+					CandidateId = userManager.GetUserId(User)!,
+					CandidateMessage = vm.CandidateMessage,
+					CvFilePath = savedFilePath,
+					AppliedAt = DateTime.UtcNow,
+					JobApplicationStatus = JobApplicationStatus.Submitted
+				};
+
+				await applicationRepository.AddAsync(application);
+
+				TempData["SuccessMessage"] = "Application has been sent.";
+				return RedirectToAction(nameof(Index));
 			}
-			
-			var jobPosting = new JobPosting
+			catch (Exception e)
 			{
-				Title = jobPostingVm.Title,
-				Description = jobPostingVm.Description,
-				CompanyId = currentUser.Company.Id,
-				Location = jobPostingVm.Location,
-				UserId = userId!, 
-				WorkType = jobPostingVm.WorkType,
-				Salary = jobPostingVm.Salary,
-				SalaryCurrency = jobPostingVm.SalaryCurrency
-			};
-
-			await _repository.AddAsync(jobPosting);
-
-			return RedirectToAction(nameof(Index));
+				ModelState.AddModelError(string.Empty, e.Message);
+				return View(vm);
+			}
 		}
 
 		[HttpDelete]
@@ -222,21 +296,21 @@ namespace DevSpot.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var jobPosting = await _repository.GetByIdAsync(id);
+			var jobPosting = await jobPostingRepository.GetByIdAsync(id);
 
 			if (jobPosting == null)
 			{
 				return NotFound();
 			}
 
-			var userId = _userManager.GetUserId(User);
+			var userId = userManager.GetUserId(User);
 
 			if (User.IsInRole(Roles.ADMIN) == false && jobPosting.UserId != userId)
 			{
 				return Forbid();
 			}
 
-			await _repository.DeleteAsync(id);
+			await jobPostingRepository.DeleteAsync(id);
 
 			return Ok();
 		}

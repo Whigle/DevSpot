@@ -1,6 +1,6 @@
-﻿using DevSpot.Data;
+﻿using DevSpot.Models;
 
-namespace DevSpot.Services;
+namespace DevSpot.Services.Interfaces;
 
 public interface IUserService
 {

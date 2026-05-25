@@ -1,0 +1,58 @@
+﻿@model DevSpot.ViewModels.JobApplicationCreateViewModel
+
+@{
+    ViewData["Title"] = "Apply for job";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">You are applying for job offer</h4>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-dark">@Model.JobTitle</h3>
+                    <h5 class="card-subtitle text-muted mb-2">Company: @Model.CompanyName</h5>
+                    <p class="text-sm text-secondary mb-0">
+                        Make sure, that your cv is up to date before applying.
+                    </p>
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Apply" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="JobPostingId" />
+                        <input type="hidden" asp-for="JobTitle" />
+                        <input type="hidden" asp-for="CompanyName" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 font-weight-bold"></div>
+                        <div class="mb-3">
+                            <label asp-for="CandidateMessage" class="form-label font-weight-bold">Candidate Message (optional)</label>
+                            <textarea asp-for="CandidateMessage" class="form-control" rows="5" placeholder="Few words from you ..."></textarea>
+                            <span asp-validation-for="CandidateMessage" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="CvFile" class="firm-label font-weight-bold">Your CV (.pdf, max 5MB)</label>
+                            <input asp-for="CvFile" type="file" class="form-control" accept=".pdf"/>
+                            <span asp-validation-for="CvFile" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i>Back to offers
+                            </a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-send"></i> Send application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,5 +1,7 @@
 using DevSpot.Data;
 using DevSpot.Models;
+using DevSpot.Repositories.Interfaces;
+using DevSpot.ViewModels.FilterOptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Repositories
@@ -40,6 +42,15 @@ namespace DevSpot.Repositories
 		public async Task<JobPosting?> GetByIdAsync(int id)
 		{
 			var jobPosting = await _context.JobPostings.FindAsync(id);
+			return jobPosting;
+		}
+
+		public async Task<JobPosting?> GetByIdWithCompanyAsync(int id)
+		{
+			var jobPosting = await _context.JobPostings
+				.Include(j => j.Company)
+				.FirstOrDefaultAsync(j => j.Id == id);
+			
 			return jobPosting;
 		}
 

@@ -1,4 +1,4 @@
-﻿namespace DevSpot.Models
+﻿namespace DevSpot.Models.Enums
 {
 	public enum WorkType
 	{

@@ -1,4 +1,6 @@
 ﻿using DevSpot.Data;
+using DevSpot.Models;
+using DevSpot.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevSpot.Services;
